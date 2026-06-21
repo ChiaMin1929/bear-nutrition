@@ -1,0 +1,39 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#D8E8EC;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#F0EAE8;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#F4C4B0;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg)" />
+
+  <!-- Bear centered at 600, 280, scale ~2.8x of 100px viewBox -->
+  <g transform="translate(318, 95) scale(2.88)">
+    <!-- Left ear -->
+    <circle cx="24" cy="32" r="11" fill="#A8857A" stroke="#2A1A0E" stroke-width="3.5" />
+    <!-- Right ear -->
+    <circle cx="76" cy="32" r="11" fill="#A8857A" stroke="#2A1A0E" stroke-width="3.5" />
+    <!-- Head -->
+    <ellipse cx="50" cy="56" rx="38" ry="37" fill="#B8907F" stroke="#2A1A0E" stroke-width="4" />
+    <!-- Left eyebrow -->
+    <rect x="29" y="43" width="13" height="3.5" rx="2" fill="#2A1A0E" />
+    <!-- Left pupil -->
+    <circle cx="35" cy="52" r="4" fill="#2A1A0E" />
+    <!-- Right eyebrow -->
+    <rect x="58" y="43" width="13" height="3.5" rx="2" fill="#2A1A0E" />
+    <!-- Right pupil -->
+    <circle cx="65" cy="52" r="4" fill="#2A1A0E" />
+    <!-- Nose -->
+    <circle cx="50" cy="64" r="3" fill="#2A1A0E" />
+    <!-- Mouth -->
+    <rect x="43" y="72" width="14" height="3" rx="1.5" fill="#2A1A0E" />
+  </g>
+
+  <!-- App name -->
+  <text x="600" y="490" text-anchor="middle" font-family="'Noto Sans TC', system-ui, sans-serif" font-size="52" font-weight="700" fill="#3D3530">巴熊營養師</text>
+  <!-- Tagline -->
+  <text x="600" y="548" text-anchor="middle" font-family="'Noto Sans TC', system-ui, sans-serif" font-size="26" fill="#3D3530" opacity="0.55">你的厭世 AI 飲食夥伴</text>
+</svg>
