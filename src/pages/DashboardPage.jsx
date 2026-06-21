@@ -140,12 +140,8 @@ export default function DashboardPage() {
                     <p className="text-sm font-medium text-text truncate">{entry.food_name || entry.name}</p>
                     <p className="text-xs text-text/50">{formatTime(entry.timestamp)} · {entry.calories} kcal</p>
                   </div>
-                  <div className="flex gap-2">
-                    <button onClick={() => navigate('/logger', { state: { editId: entry.id } })}
-                      className="text-text/30 hover:text-teal transition-colors text-base p-1">✏️</button>
-                    <button onClick={() => setDeleteConfirm(entry.id)}
-                      className="text-text/30 hover:text-coral transition-colors text-base p-1">🗑️</button>
-                  </div>
+                  <button onClick={() => setDeleteConfirm(entry.id)}
+                    className="text-text/30 hover:text-coral transition-colors text-base p-1">🗑️</button>
                 </div>
               ))}
             </div>

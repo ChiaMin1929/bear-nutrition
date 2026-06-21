@@ -245,7 +245,8 @@ export default function LoggerPage() {
         {/* Text input mode */}
         {mode === 'text-input' && (
           <form onSubmit={handleTextSubmit} className="bg-white rounded-3xl p-5 shadow-sm flex flex-col gap-4 bounce-in">
-            <h3 className="font-bold text-text">描述你吃了什麼</h3>
+            <h3 className="font-bold text-text">輸入品項</h3>
+            <p className="text-sm text-text/50 -mt-2">AI 幫你分析熱量</p>
             <textarea
               value={textInput}
               onChange={e => setTextInput(e.target.value)}
