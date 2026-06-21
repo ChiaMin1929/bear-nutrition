@@ -26,12 +26,15 @@ export default async function handler(req, res) {
 
   const userPrompt = `請分析以下用戶提供的當餐內容（可能是照片，也可能是下方附帶的文字描述）。
 請合理估算這餐的食物名稱、總熱量(kcal)、蛋白質(g)、脂肪(g)、碳水化合物(g)。
-另外，在最後的 coach_comment 中，必須用巴熊的角度，給出一句「一針見血、讓人被戳中但又覺得有趣」的30字以內評語。
+
+另外需要提供：
+- breakdown：逐一列出每個品項的估算熱量，並說明哪個營養成分偏高（例如：麵包約300大卡、豆漿約200大卡，碳水偏高），控制在70字以內。
+- coach_comment：用巴熊的厭世角度給出一針見血的評語，控制在20字以內。
 
 【用戶文字描述】：${textInput || '（請依照片判斷）'}
 
 請嚴格以下列 JSON 格式回傳，不要包含任何 markdown 標記（如 \`\`\`json）或額外文字：
-{"food_name":"食物名稱","calories":750,"protein":35,"fat":28,"carbs":90,"coach_comment":"巴熊的厭世評語（30字內）"}`
+{"food_name":"食物名稱","calories":750,"protein":35,"fat":28,"carbs":90,"breakdown":"各品項熱量與營養亮點（70字內）","coach_comment":"巴熊評語（20字內）"}`
 
   // Build parts array: images first, then text prompt
   const parts = []

@@ -147,6 +147,14 @@ export default function LoggerPage() {
                 <h3 className="font-bold text-text">{result.food_name}</h3>
                 <span className="text-coral font-bold text-lg">{Math.round(result.calories * ratio)} kcal</span>
               </div>
+              {/* Breakdown 分析 */}
+              {result.breakdown && (
+                <div className="bg-bg rounded-2xl px-4 py-3 mb-4">
+                  <p className="text-xs font-semibold text-text/50 mb-1">📊 熱量分析</p>
+                  <p className="text-sm text-text leading-relaxed">{result.breakdown}</p>
+                </div>
+              )}
+
               <div className="grid grid-cols-3 gap-3 mb-5">
                 {[
                   { label: '蛋白質', val: result.protein, color: 'text-teal' },
