@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react'
+import React, { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useNutrition } from '../contexts/NutritionContext'
 import BearMascot from '../components/BearMascot'
@@ -40,7 +40,6 @@ export default function LoggerPage() {
   const [loading, setLoading] = useState(false)
   const [apiError, setApiError] = useState(null)
   const [manualForm, setManualForm] = useState({ name: '', calories: '', protein: '', fat: '', carbs: '' })
-  const fileRef = useRef()
 
   function openSheet() { setSheetOpen(true); setMode(null) }
 
@@ -270,21 +269,21 @@ export default function LoggerPage() {
       {/* Logger bottom sheet */}
       <BottomSheet open={sheetOpen} onClose={() => setSheetOpen(false)} title="選擇記錄方式">
         <div className="flex flex-col gap-2 p-4">
-          <input
-            ref={fileRef}
-            type="file"
-            accept="image/*"
-            capture="environment"
-            multiple
-            className="hidden"
-            onChange={handleFileChange}
-          />
-          <SheetBtn
-            emoji="📷" label="拍照 / 選相簿"
-            desc="最多 3 張，AI 幫你辨識"
-            color="bg-coral/10 text-coral"
-            onClick={() => { setSheetOpen(false); setTimeout(() => fileRef.current?.click(), 100) }}
-          />
+          {/* 拍照按鈕直接用 label 包住 file input，避免手機 user gesture 問題 */}
+          <label className="flex items-center gap-4 w-full px-4 py-4 rounded-2xl bg-bg active:scale-95 transition-transform cursor-pointer">
+            <span className="text-2xl w-12 h-12 rounded-2xl flex items-center justify-center bg-coral/10 text-coral">📷</span>
+            <div>
+              <div className="font-semibold text-sm text-text">拍照 / 選相簿</div>
+              <div className="text-xs text-text/50">最多 3 張，AI 幫你辨識</div>
+            </div>
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              className="hidden"
+              onChange={e => { setSheetOpen(false); handleFileChange(e) }}
+            />
+          </label>
           <SheetBtn
             emoji="✍️" label="輸入文字"
             desc="描述你吃了什麼"
