@@ -286,8 +286,8 @@ export default function LoggerPage() {
             />
           </label>
           <SheetBtn
-            emoji="✍️" label="輸入文字"
-            desc="描述你吃了什麼"
+            emoji="✍️" label="輸入品項"
+            desc="AI 幫你分析熱量"
             color="bg-teal/10 text-teal"
             onClick={() => { setSheetOpen(false); setMode('text-input') }}
           />
