@@ -61,11 +61,13 @@ export function NutritionProvider({ children }) {
   }
 
   async function saveTodayLog(log) {
-    setTodayLog(log)
+    const totalCalories = (log.entries || []).reduce((s, e) => s + (e.calories || 0), 0)
+    const logWithTotal = { ...log, totalCalories }
+    setTodayLog(logWithTotal)
     const localKey = `bear_log_${dateKey}`
-    localStorage.setItem(localKey, JSON.stringify(log))
+    localStorage.setItem(localKey, JSON.stringify(logWithTotal))
     if (user) {
-      await setDoc(doc(db, 'users', user.uid, 'logs', dateKey), log)
+      await setDoc(doc(db, 'users', user.uid, 'logs', dateKey), logWithTotal)
     }
   }
 

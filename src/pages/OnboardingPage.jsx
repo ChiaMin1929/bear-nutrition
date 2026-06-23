@@ -222,9 +222,10 @@ function GoalStep({ value, onChange }) {
 
 function ActivityStep({ value, onChange }) {
   const opts = [
-    { v: 'sedentary', label: '久坐辦公室', emoji: '🪑', factor: '×1.2' },
-    { v: 'light', label: '常走動/通勤', emoji: '🚶', factor: '×1.375' },
-    { v: 'active', label: '規律運動族', emoji: '🏃', factor: '×1.55' },
+    { v: 'sedentary', label: '久坐不動',  emoji: '🪑', desc: '辦公室工作為主' },
+    { v: 'light',     label: '輕度活動',  emoji: '🚶', desc: '每週運動 1–3 天' },
+    { v: 'moderate',  label: '中度活動',  emoji: '🏃', desc: '每週運動 3–5 天' },
+    { v: 'active',    label: '高度活動',  emoji: '💪', desc: '每週運動 6–7 天' },
   ]
   return (
     <div>
@@ -239,8 +240,11 @@ function ActivityStep({ value, onChange }) {
               ${value === opt.v ? 'border-teal bg-teal/5' : 'border-border'}`}
           >
             <span className="text-2xl">{opt.emoji}</span>
-            <span className={`font-semibold text-sm flex-1 ${value === opt.v ? 'text-teal' : 'text-text'}`}>{opt.label}</span>
-            <span className="text-xs text-text/40 bg-bg px-2 py-1 rounded-lg">{opt.factor}</span>
+            <div className="flex-1">
+              <div className={`font-semibold text-sm ${value === opt.v ? 'text-teal' : 'text-text'}`}>{opt.label}</div>
+              <div className="text-xs text-text/50">{opt.desc}</div>
+            </div>
+            {value === opt.v && <span className="text-teal">✓</span>}
           </button>
         ))}
       </div>

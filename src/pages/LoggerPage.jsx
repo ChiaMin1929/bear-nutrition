@@ -41,6 +41,29 @@ export default function LoggerPage() {
   const [apiError, setApiError] = useState(null)
   const [apiErrorCode, setApiErrorCode] = useState(null)
   const [manualForm, setManualForm] = useState({ name: '', calories: '', protein: '', fat: '', carbs: '' })
+  const [unsavedDialog, setUnsavedDialog] = useState({ open: false, pendingPath: null })
+
+  function handleNavGuard(path) {
+    if (mode === 'confirm') {
+      setUnsavedDialog({ open: true, pendingPath: path })
+    } else {
+      navigate(path)
+    }
+  }
+
+  function handleSaveAndLeave() {
+    const { pendingPath } = unsavedDialog
+    setUnsavedDialog({ open: false, pendingPath: null })
+    handleConfirm(pendingPath)
+  }
+
+  function handleDiscardAndLeave() {
+    const { pendingPath } = unsavedDialog
+    setUnsavedDialog({ open: false, pendingPath: null })
+    setMode(null)
+    setResult(null)
+    navigate(pendingPath)
+  }
 
   function openSheet() { setSheetOpen(true); setMode(null) }
 
@@ -89,7 +112,7 @@ export default function LoggerPage() {
     setMode('ai-input')
   }
 
-  function handleConfirm() {
+  function handleConfirm(dest = '/dashboard') {
     const scaled = {
       food_name: result.food_name,
       calories: Math.round(result.calories * ratio),
@@ -102,7 +125,7 @@ export default function LoggerPage() {
     setMode(null)
     setResult(null)
     setImages([])
-    navigate('/dashboard')
+    navigate(dest)
   }
 
   function handleManualSubmit(e) {
@@ -345,7 +368,43 @@ export default function LoggerPage() {
         </div>
       </BottomSheet>
 
-      <BottomNav />
+      <BottomNav onNavigate={handleNavGuard} />
+
+      {/* Unsaved result guard dialog */}
+      {unsavedDialog.open && (
+        <div className="fixed inset-0 z-[100] flex items-end justify-center">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setUnsavedDialog({ open: false, pendingPath: null })} />
+          <div className="relative w-full max-w-[430px] bg-white rounded-t-3xl p-6 flex flex-col gap-4 bounce-in">
+            <button
+              onClick={() => setUnsavedDialog({ open: false, pendingPath: null })}
+              className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center text-text/30 hover:text-text/60"
+            >
+              ✕
+            </button>
+            <div className="flex items-start gap-3 pr-8">
+              <BearMascot size={44} />
+              <div>
+                <p className="font-bold text-text text-base">還沒儲存分析結果！</p>
+                <p className="text-sm text-text/60 mt-0.5">離開前要先把這餐加入紀錄嗎？</p>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={handleDiscardAndLeave}
+                className="flex-1 border border-border rounded-2xl py-3.5 text-sm font-medium text-text/60"
+              >
+                離開
+              </button>
+              <button
+                onClick={handleSaveAndLeave}
+                className="flex-1 bg-coral text-white rounded-2xl py-3.5 text-sm font-semibold"
+              >
+                儲存
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

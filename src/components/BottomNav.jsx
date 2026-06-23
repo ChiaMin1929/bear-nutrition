@@ -8,9 +8,17 @@ const TABS = [
   { path: '/settings', icon: '⚙️', label: '設定' },
 ]
 
-export default function BottomNav() {
+export default function BottomNav({ onNavigate }) {
   const location = useLocation()
   const navigate = useNavigate()
+
+  function handleClick(path) {
+    if (onNavigate) {
+      onNavigate(path)
+    } else {
+      navigate(path)
+    }
+  }
 
   return (
     <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] bg-white border-t border-border bottom-nav z-50">
@@ -20,7 +28,7 @@ export default function BottomNav() {
           return (
             <button
               key={tab.path}
-              onClick={() => navigate(tab.path)}
+              onClick={() => handleClick(tab.path)}
               className={`flex flex-col items-center gap-0.5 px-4 py-1 rounded-2xl transition-all
                 ${active ? 'text-coral' : 'text-gray-400'}`}
             >
