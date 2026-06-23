@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { useNutrition } from '../contexts/NutritionContext'
-import { calcNutritionGoals } from '../utils/nutrition'
+import { calcNutritionGoals, calcBMR, ACTIVITY_FACTORS } from '../utils/nutrition'
 import BearMascot from '../components/BearMascot'
 import BottomNav from '../components/BottomNav'
 
@@ -13,12 +13,16 @@ export default function SettingsPage() {
 
   const [form, setForm] = useState(profile || {
     gender: 'female', age: 28, height: 162, weight: 58,
-    activityLevel: 'light', goal: 'lose', badHabits: [],
+    activityLevel: 'light', goal: 'lose',
   })
   const [nickname, setNickname] = useState(user?.nickname || '')
   const [saved, setSaved] = useState(false)
 
   function update(key, val) { setForm(f => ({ ...f, [key]: val })) }
+
+  const bmr = calcBMR(form)
+  const tdee = Math.round(bmr * (ACTIVITY_FACTORS[form.activityLevel] ?? 1.375))
+  const preview = calcNutritionGoals(form)
 
   function handleSave(e) {
     e.preventDefault()
@@ -42,18 +46,25 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        {/* Goals display */}
-        {goals && (
-          <div className="bg-coral/5 rounded-3xl p-4 mb-4 border border-coral/20">
-            <p className="text-xs font-semibold text-coral mb-3">目前每日目標</p>
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              <Stat label="熱量" val={goals.calories} unit="kcal" />
-              <Stat label="蛋白質" val={goals.protein} unit="g" />
-              <Stat label="脂肪" val={goals.fat} unit="g" />
-              <Stat label="碳水" val={goals.carbs} unit="g" />
-            </div>
+        {/* Goals display — live preview from current form */}
+        <div className="bg-coral/5 rounded-3xl p-4 mb-4 border border-coral/20">
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-xs font-semibold text-coral">每日目標預覽</p>
+            {goals && preview.calories !== goals.calories && (
+              <span className="text-xs text-text/40">調整後將更新</span>
+            )}
           </div>
-        )}
+          <div className="grid grid-cols-2 gap-2 text-xs mb-3">
+            <Stat label="熱量" val={preview.calories} unit="kcal" highlight />
+            <Stat label="蛋白質" val={preview.protein} unit="g" />
+            <Stat label="脂肪" val={preview.fat} unit="g" />
+            <Stat label="碳水" val={preview.carbs} unit="g" />
+          </div>
+          <div className="border-t border-coral/10 pt-2.5 flex gap-4 text-xs text-text/40">
+            <span>BMR {Math.round(bmr)} kcal</span>
+            <span>TDEE {tdee} kcal</span>
+          </div>
+        </div>
 
         <form onSubmit={handleSave} className="flex flex-col gap-4">
 
@@ -107,14 +118,16 @@ export default function SettingsPage() {
           <Section title="活動量">
             <div className="flex flex-col gap-2">
               {[
-                {v:'sedentary',l:'久坐辦公室'},
-                {v:'light',l:'常走動/通勤'},
-                {v:'active',l:'規律運動族'},
+                {v:'sedentary', l:'久坐不動',       d:'辦公室工作為主'},
+                {v:'light',     l:'輕度活動',        d:'每週運動 1–3 天'},
+                {v:'moderate',  l:'中度活動',        d:'每週運動 3–5 天'},
+                {v:'active',    l:'高度活動',        d:'每週運動 6–7 天'},
               ].map(a => (
                 <button key={a.v} type="button" onClick={() => update('activityLevel', a.v)}
-                  className={`py-2.5 rounded-xl text-sm font-medium border-2 transition-all
+                  className={`flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium border-2 transition-all
                     ${form.activityLevel === a.v ? 'border-teal bg-teal/5 text-teal' : 'border-border text-text/60'}`}>
-                  {a.l}
+                  <span>{a.l}</span>
+                  <span className={`text-xs font-normal ${form.activityLevel === a.v ? 'text-teal/70' : 'text-text/30'}`}>{a.d}</span>
                 </button>
               ))}
             </div>
@@ -161,11 +174,11 @@ function NumberField({ label, value, min, max, unit, onChange }) {
   )
 }
 
-function Stat({ label, val, unit }) {
+function Stat({ label, val, unit, highlight }) {
   return (
     <div className="flex justify-between items-center">
       <span className="text-text/60">{label}</span>
-      <span className="font-semibold text-text">{val} {unit}</span>
+      <span className={`font-semibold ${highlight ? 'text-coral' : 'text-text'}`}>{val} {unit}</span>
     </div>
   )
 }

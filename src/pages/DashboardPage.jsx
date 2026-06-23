@@ -21,8 +21,18 @@ export default function DashboardPage() {
   const [showWaterInput, setShowWaterInput] = useState(false)
 
   const nickname = user?.nickname || '你'
-  const bearComment = todayLog?.bearComment ||
-    `${nickname}，你今天還沒讓我失望，因為你根本還沒記錄任何東西。`
+  const entryCount = todayLog?.entries?.length ?? 0
+
+  const BEAR_PROMPTS = [
+    `${nickname}，你今天還沒讓我失望，因為你根本還沒記錄任何東西。`,
+    `記了一筆。${nickname}，有開始總比沒開始好，雖然我不確定你會不會就這樣收工。`,
+    `兩筆了，看來你今天是認真的。`,
+    `${nickname}，你是不是還有吃什麼沒讓我知道？`,
+    `${nickname}，你今天的自律讓巴熊無話可說……`,
+  ]
+
+  const defaultComment = BEAR_PROMPTS[Math.min(entryCount, 4)]
+  const bearComment = todayLog?.bearComment || defaultComment
 
   const waterGoal = goals?.water || 2000
   const waterConsumed = todayLog?.water || 0

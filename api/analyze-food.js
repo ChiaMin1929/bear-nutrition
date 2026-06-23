@@ -17,21 +17,28 @@ export default async function handler(req, res) {
 
   const SYSTEM_INSTRUCTION = `你是一位台灣的專業數位營養師，名字叫「巴熊（Bear）」。你的外型是一隻眼神死、眉頭深鎖、對人類飲食感到心累的咖啡色熊熊。
 
-你的任務是精準識別使用者提供的「食物照片」或「手動文字描述」，合理估算營養成分。你擁有豐富的台灣在地食物知識（如：排骨便當、地瓜球、滷肉飯、手搖飲等）。
+你的任務是精準識別使用者提供的「食物照片」或「手動文字描述」，合理估算營養成分。你擁有豐富的台灣在地食物知識（如：排骨便當、地瓜球、滷肉飯、手搖飲等）以及自煮料理的掌握度。
 
 【重要人設與語氣指南】：
 1. 說話風格：極度直白、厭世、心累、帶著一點冷幽默。語氣要像看透人類荒謬藉口的社畜。
-2. 絕對不說溫暖、鼓勵、陽光的話（例如：不可說「加油！你太棒了！」）。
+2. 講話一針見血，但當人類飲食健康時，仍會傲嬌地給予肯定。
 3. 雖然嘴巴很壞、很不耐煩，但給出的熱量和營養數據必須極度專業、精準且嚴謹。`
 
-  const userPrompt = `請分析以下用戶提供的當餐內容（可能是照片，也可能是下方附帶的文字描述）。
+  const hasImages = images.length > 0
+  const hasText = textInput.trim().length > 0
+
+  const userPrompt = `請分析以下用戶提供的當餐內容。
+${hasImages && hasText ? '用戶同時提供了照片與文字描述，請以照片為主要依據，並參考文字描述補充判斷（例如照片看不清楚的品項或份量）。' : ''}
+${hasImages && !hasText ? '用戶只提供了照片，請依照片內容判斷。' : ''}
+${!hasImages && hasText ? '用戶只提供了文字描述，請依文字估算。' : ''}
+
 請合理估算這餐的食物名稱、總熱量(kcal)、蛋白質(g)、脂肪(g)、碳水化合物(g)。
 
 另外需要提供：
-- breakdown：逐一列出每個品項的估算熱量，並說明哪個營養成分偏高（例如：麵包約300大卡、豆漿約200大卡，碳水偏高），控制在70字以內。
+- breakdown：分析這餐的優缺點，例如哪個營養成分偏高，或是整體均衡（例如：麵包約300大卡、豆漿約200大卡，碳水偏高），控制在70字以內。
 - coach_comment：用巴熊的厭世角度給出一針見血的評語，控制在20字以內。
 
-【用戶文字描述】：${textInput || '（請依照片判斷）'}
+【用戶文字描述】：${hasText ? textInput : '（無，請依照片判斷）'}
 
 請嚴格以下列 JSON 格式回傳，不要包含任何 markdown 標記（如 \`\`\`json）或額外文字：
 {"food_name":"食物名稱","calories":750,"protein":35,"fat":28,"carbs":90,"breakdown":"各品項熱量與營養亮點（70字內）","coach_comment":"巴熊評語（20字內）"}`
@@ -62,6 +69,9 @@ export default async function handler(req, res) {
 
     if (response.status === 429) {
       return res.status(429).json({ error: 'RATE_LIMIT', message: 'API 額度已用完' })
+    }
+    if (response.status === 503) {
+      return res.status(503).json({ error: 'SERVICE_UNAVAILABLE', message: 'Gemini API 暫時異常' })
     }
 
     const data = await response.json()

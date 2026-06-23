@@ -39,6 +39,7 @@ export default function LoggerPage() {
   const [ratio, setRatio] = useState(1)
   const [loading, setLoading] = useState(false)
   const [apiError, setApiError] = useState(null)
+  const [apiErrorCode, setApiErrorCode] = useState(null)
   const [manualForm, setManualForm] = useState({ name: '', calories: '', protein: '', fat: '', carbs: '' })
 
   function openSheet() { setSheetOpen(true); setMode(null) }
@@ -47,15 +48,20 @@ export default function LoggerPage() {
     const files = Array.from(e.target.files).slice(0, 3)
     Promise.all(files.map(compressImage)).then(imgs => {
       setImages(imgs)
-      setMode('loading')
-      setSheetOpen(false)
-      callAI({ images: imgs, textInput: '' })
     })
+  }
+
+  function handleAISubmit() {
+    if (images.length === 0 && !textInput.trim()) return
+    setMode('loading')
+    setSheetOpen(false)
+    callAI({ images, textInput: textInput.trim() })
   }
 
   async function callAI({ images: imgs, textInput: text }) {
     setLoading(true)
     setApiError(null)
+    setApiErrorCode(null)
     try {
       const result = await analyzeFood({ images: imgs, textInput: text })
       setResult(result)
@@ -64,8 +70,11 @@ export default function LoggerPage() {
     } catch (err) {
       if (err.message === 'RATE_LIMIT') {
         setApiError('rate_limit')
+      } else if (err.message === 'SERVICE_UNAVAILABLE') {
+        setApiError('service_unavailable')
       } else {
         setApiError('generic')
+        setApiErrorCode(err.code ?? null)
       }
       setMode(null)
     } finally {
@@ -73,12 +82,11 @@ export default function LoggerPage() {
     }
   }
 
-  function handleTextSubmit(e) {
-    e.preventDefault()
-    if (!textInput.trim()) return
-    setMode('loading')
+  function openAIInput() {
+    setImages([])
+    setTextInput('')
     setSheetOpen(false)
-    callAI({ images: [], textInput: textInput.trim() })
+    setMode('ai-input')
   }
 
   function handleConfirm() {
@@ -199,12 +207,19 @@ export default function LoggerPage() {
         {/* API Error state */}
         {apiError && (
           <div className="bg-white rounded-3xl p-6 shadow-sm bounce-in flex flex-col items-center gap-3 text-center">
-            <span className="text-3xl">💡</span>
-            <p className="font-bold text-text">AI 營養師休息中</p>
-            <p className="text-sm text-text/60 leading-relaxed">
-              {apiError === 'rate_limit'
-                ? '由於目前使用人數較多，今日的 AI 免費諮詢額度已經用完囉！請明天再來找我聊聊，或是您也可以先用手動輸入方式記錄喔！'
-                : 'AI 辨識暫時無法使用，請稍後再試或使用手動輸入。'}
+            <img
+              src={
+                apiError === 'service_unavailable' ? '/503_bear.png'
+                : apiError === 'rate_limit' ? '/429_bear.jpg'
+                : '/other_error_bear.png'
+              }
+              alt="巴熊錯誤圖示"
+              className="w-28 h-28 object-contain"
+            />
+            <p className="font-bold text-text">
+              {apiError === 'service_unavailable' ? '巴熊午睡中... 等等再來'
+              : apiError === 'rate_limit' ? '今日巴熊的服務次數已用完，銘謝惠顧'
+              : '巴熊罷工中，請聯繫兔子'}
             </p>
             <div className="flex gap-3 w-full mt-1">
               <button onClick={() => { setApiError(null); setMode('manual') }}
@@ -216,6 +231,9 @@ export default function LoggerPage() {
                 我知道了
               </button>
             </div>
+            <p className="text-xs text-text/30">
+              （錯誤代碼：{apiError === 'service_unavailable' ? '503' : apiError === 'rate_limit' ? '429' : apiErrorCode ?? 'ERR'}）
+            </p>
           </div>
         )}
 
@@ -250,54 +268,73 @@ export default function LoggerPage() {
           </form>
         )}
 
-        {/* Text input mode */}
-        {mode === 'text-input' && (
-          <form onSubmit={handleTextSubmit} className="bg-white rounded-3xl p-5 shadow-sm flex flex-col gap-4 bounce-in">
-            <h3 className="font-bold text-text">輸入品項</h3>
-            <p className="text-sm text-text/50 -mt-2">AI 幫你分析熱量</p>
-            <textarea
-              value={textInput}
-              onChange={e => setTextInput(e.target.value)}
-              placeholder="例：一碗滷肉飯、一碗味噌湯、半盤燙青菜"
-              rows={4}
-              className="border border-border rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-coral resize-none"
-              autoFocus
-            />
+        {/* AI input mode — combined photo + text */}
+        {mode === 'ai-input' && (
+          <div className="bg-white rounded-3xl p-5 shadow-sm flex flex-col gap-4 bounce-in">
+            <h3 className="font-bold text-text">AI 辨識</h3>
+
+            {/* Image upload */}
+            <div>
+              <p className="text-xs font-medium text-text/60 mb-2">上傳照片（選填，最多 3 張）</p>
+              <div className="flex gap-2 flex-wrap">
+                {images.map((src, i) => (
+                  <div key={i} className="relative">
+                    <img src={src} className="w-20 h-20 rounded-2xl object-cover border border-border" />
+                    <button
+                      type="button"
+                      onClick={() => setImages(imgs => imgs.filter((_, j) => j !== i))}
+                      className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-text text-white rounded-full text-xs flex items-center justify-center leading-none"
+                    >×</button>
+                  </div>
+                ))}
+                {images.length < 3 && (
+                  <label className="w-20 h-20 rounded-2xl border border-dashed border-border flex flex-col items-center justify-center gap-1 cursor-pointer active:bg-bg">
+                    <span className="text-2xl text-text/30">📷</span>
+                    <span className="text-xs text-text/30">新增</span>
+                    <input type="file" accept="image/*" multiple className="hidden" onChange={handleFileChange} />
+                  </label>
+                )}
+              </div>
+            </div>
+
+            {/* Text input */}
+            <div>
+              <p className="text-xs font-medium text-text/60 mb-2">補充說明（選填）</p>
+              <textarea
+                value={textInput}
+                onChange={e => setTextInput(e.target.value)}
+                placeholder="例：一碗滷肉飯、一碗味噌湯、半盤燙青菜"
+                rows={3}
+                className="w-full border border-border rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-coral resize-none"
+              />
+            </div>
+
+            <p className="text-xs text-text/40 -mt-2">照片和文字可以同時提供，或擇一即可</p>
+
             <div className="flex gap-3">
-              <button type="button" onClick={() => setMode(null)}
+              <button type="button" onClick={() => { setMode(null); setImages([]); setTextInput('') }}
                 className="flex-1 border border-border rounded-2xl py-3 text-sm text-text/60">取消</button>
-              <button type="submit" disabled={!textInput.trim()}
-                className="flex-1 bg-coral text-white rounded-2xl py-3 text-sm font-semibold disabled:opacity-50">
+              <button
+                type="button"
+                onClick={handleAISubmit}
+                disabled={images.length === 0 && !textInput.trim()}
+                className="flex-1 bg-coral text-white rounded-2xl py-3 text-sm font-semibold disabled:opacity-50"
+              >
                 讓巴熊分析
               </button>
             </div>
-          </form>
+          </div>
         )}
       </div>
 
       {/* Logger bottom sheet */}
       <BottomSheet open={sheetOpen} onClose={() => setSheetOpen(false)} title="選擇記錄方式">
         <div className="flex flex-col gap-2 p-4">
-          {/* 拍照按鈕直接用 label 包住 file input，避免手機 user gesture 問題 */}
-          <label className="flex items-center gap-4 w-full px-4 py-4 rounded-2xl bg-bg active:scale-95 transition-transform cursor-pointer">
-            <span className="text-2xl w-12 h-12 rounded-2xl flex items-center justify-center bg-coral/10 text-coral">📷</span>
-            <div>
-              <div className="font-semibold text-sm text-text">拍照 / 選相簿</div>
-              <div className="text-xs text-text/50">最多 3 張，AI 幫你辨識</div>
-            </div>
-            <input
-              type="file"
-              accept="image/*"
-              multiple
-              className="hidden"
-              onChange={e => { setSheetOpen(false); handleFileChange(e) }}
-            />
-          </label>
           <SheetBtn
-            emoji="✍️" label="輸入品項"
-            desc="AI 幫你分析熱量"
-            color="bg-teal/10 text-teal"
-            onClick={() => { setSheetOpen(false); setMode('text-input') }}
+            emoji="🤖" label="AI 辨識"
+            desc="拍照或輸入品項，AI 幫你分析"
+            color="bg-coral/10 text-coral"
+            onClick={openAIInput}
           />
           <SheetBtn
             emoji="📝" label="手動輸入"

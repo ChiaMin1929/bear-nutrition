@@ -12,7 +12,8 @@ export async function analyzeFood({ images = [], textInput = '' }) {
     body: JSON.stringify({ images, textInput }),
   })
   if (res.status === 429) throw new Error('RATE_LIMIT')
-  if (!res.ok) throw new Error('API_ERROR')
+  if (res.status === 503) throw new Error('SERVICE_UNAVAILABLE')
+  if (!res.ok) throw Object.assign(new Error('API_ERROR'), { code: res.status })
   return res.json()
 }
 
