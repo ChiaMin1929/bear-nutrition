@@ -95,6 +95,8 @@ export default function LoggerPage() {
         setApiError('rate_limit')
       } else if (err.message === 'SERVICE_UNAVAILABLE') {
         setApiError('service_unavailable')
+      } else if (err.message === 'TIMEOUT') {
+        setApiError('timeout')
       } else {
         setApiError('generic')
         setApiErrorCode(err.code ?? null)
@@ -242,20 +244,28 @@ export default function LoggerPage() {
             <p className="font-bold text-text">
               {apiError === 'service_unavailable' ? '巴熊午睡中... 等等再來'
               : apiError === 'rate_limit' ? '今日巴熊的服務次數已用完，銘謝惠顧'
+              : apiError === 'timeout' ? '巴熊想太久恍神了... 再試一次吧'
               : '巴熊罷工中，請聯繫兔子'}
             </p>
             <div className="flex gap-3 w-full mt-1">
-              <button onClick={() => { setApiError(null); setMode('manual') }}
-                className="flex-1 bg-coral text-white rounded-2xl py-3 text-sm font-semibold">
-                手動輸入
-              </button>
+              {apiError === 'timeout' ? (
+                <button onClick={() => { setApiError(null); setMode('loading'); callAI({ images, textInput: textInput.trim() }) }}
+                  className="flex-1 bg-coral text-white rounded-2xl py-3 text-sm font-semibold">
+                  再試一次
+                </button>
+              ) : (
+                <button onClick={() => { setApiError(null); setMode('manual') }}
+                  className="flex-1 bg-coral text-white rounded-2xl py-3 text-sm font-semibold">
+                  手動輸入
+                </button>
+              )}
               <button onClick={() => setApiError(null)}
                 className="flex-1 border border-border rounded-2xl py-3 text-sm text-text/60">
                 我知道了
               </button>
             </div>
             <p className="text-xs text-text/30">
-              （錯誤代碼：{apiError === 'service_unavailable' ? '503' : apiError === 'rate_limit' ? '429' : apiErrorCode ?? 'ERR'}）
+              （錯誤代碼：{apiError === 'service_unavailable' ? '503' : apiError === 'rate_limit' ? '429' : apiError === 'timeout' ? 'TIMEOUT' : apiErrorCode ?? 'ERR'}）
             </p>
           </div>
         )}

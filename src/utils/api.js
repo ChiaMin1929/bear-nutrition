@@ -5,12 +5,25 @@
 
 const BASE = import.meta.env.VITE_API_BASE_URL || ''
 
+const ANALYZE_TIMEOUT_MS = 30000
+
 export async function analyzeFood({ images = [], textInput = '' }) {
-  const res = await fetch(`${BASE}/api/analyze-food`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ images, textInput }),
-  })
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), ANALYZE_TIMEOUT_MS)
+  let res
+  try {
+    res = await fetch(`${BASE}/api/analyze-food`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ images, textInput }),
+      signal: controller.signal,
+    })
+  } catch (err) {
+    if (err.name === 'AbortError') throw new Error('TIMEOUT')
+    throw err
+  } finally {
+    clearTimeout(timer)
+  }
   if (res.status === 429) throw new Error('RATE_LIMIT')
   if (res.status === 503) throw new Error('SERVICE_UNAVAILABLE')
   if (!res.ok) throw Object.assign(new Error('API_ERROR'), { code: res.status })
